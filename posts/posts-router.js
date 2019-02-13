@@ -33,7 +33,7 @@ router.post('/', userId(), async (req, res) => {
     try {
         const newPost = { ...req.body, user_id: req.headers.userid};
         const post = await Posts.insert(newPost);
-        
+
         if(post){
             res.status(201).json(post);
         } else {
@@ -50,7 +50,7 @@ router.delete('/:id', async (req, res) => {
         const postId = await Posts.remove(req.params.id);
 
         if(postId){
-            res.status(200).json({ errorMessage: 'Post deleted' });
+            res.status(200).json({ message: 'Post deleted' });
         } else {
             res.status(404).json({ errorMessage: "The post with the specified ID does not exist." });
         }
