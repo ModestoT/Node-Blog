@@ -30,6 +30,27 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.get('/posts/:id', async (req, res) => {
+    try {
+        const user = await Users.getById(req.params.id);
+        
+        if(user){
+            const posts = await Users.getUserPosts(req.params.id);
+
+            if(posts.length > 0){
+                res.status(200).json(posts);
+            } else {
+                res.status(404).json({ errorMessage: "The user has no post" });
+            }
+        } else {
+            res.status(404).json({ errorMessage: 'This user does not exist' });
+        }
+    } catch (error){
+        console.log(error);
+        res.status(500).json({ error: "The user information could not be retrieved." });
+    }
+});
+
 router.post('/', isUpperCase(), async (req, res) => {
     if(!req.body.name){
         res.status(400).json({ errorMessage: 'Please provide a name for the user' });
@@ -45,27 +66,12 @@ router.post('/', isUpperCase(), async (req, res) => {
     }
  });
 
-router.get('/posts/:id', async (req, res) => {
-    try {
-        const posts = await Users.getUserPosts(req.params.id);
-
-        if(posts.length > 0){
-            res.status(200).json(posts);
-        } else {
-            res.status(404).json({ errorMessage: "The user has no post" });
-        }
-    } catch (error){
-        console.log(error);
-        res.status(500).json({ error: "The user information could not be retrieved." });
-    }
-});
-
 router.delete('/:id', async (req, res) => {
     try {
         const posts = await Users.getUserPosts(req.params.id);
         if(posts){
             for(let i = 0; i < posts.length; i++){
-                await Posts.remove(posts[i].id);
+                Posts.remove(posts[i].id);
             }
             const userId = await Users.remove(req.params.id);
 
@@ -82,6 +88,25 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+router.put('/:id', isUpperCase(), async (req, res) => {
+
+    if(!req.body.name){
+        res.status(400).json({ errorMessage: "Please provide new name for the user." })
+    } else {
+        try {
+            const updated = await Users.update(req.params.id, req.body);
+            if(updated) {
+                const updatedPost = await Users.getById(req.params.id);
+                res.status(200).json(updatedPost);
+            } else {
+                res.status(404).json({ errorMessage: "The user with the specified ID does not exist." });
+            }
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: 'Error updating user' });
+        }
+    }
+});
 function isUpperCase(){
     return function(req, res, next){
         if(req.body.name[0] !== req.body.name[0].toUpperCase()){
