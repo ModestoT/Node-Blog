@@ -6,7 +6,7 @@ const UsersList = props => {
     return(
         <div className="users-list-wrapper">
             {props.users.map(user => {
-                <User user={user} />
+               return <User user={user} />
             })}
         </div>
     );
