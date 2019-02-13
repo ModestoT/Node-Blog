@@ -51,20 +51,16 @@ router.get('/posts/:id', async (req, res) => {
     }
 });
 
-router.post('/', isUpperCase(), async (req, res) => {
-    if(!req.body.name){
-        res.status(400).json({ errorMessage: 'Please provide a name for the user' });
-    } else {
-         try {
-             const user = await Users.insert(req.body);
- 
-             res.status(201).json(user);
-         } catch (error) {
-             console.log(error);
-             res.status(500).json({ error: "There was an error while saving the user to the database" });
-         }
+router.post('/', Validation(), async (req, res) => {
+    try {
+        const user = await Users.insert(req.body);
+
+        res.status(201).json(user);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "There was an error while saving the user to the database" });
     }
- });
+});
 
 router.delete('/:id', async (req, res) => {
     try {
@@ -88,30 +84,27 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', isUpperCase(), async (req, res) => {
-
-    if(!req.body.name){
-        res.status(400).json({ errorMessage: "Please provide new name for the user." })
-    } else {
-        try {
-            const updated = await Users.update(req.params.id, req.body);
-            if(updated) {
-                const updatedPost = await Users.getById(req.params.id);
-                res.status(200).json(updatedPost);
-            } else {
-                res.status(404).json({ errorMessage: "The user with the specified ID does not exist." });
-            }
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({ error: 'Error updating user' });
+router.put('/:id', Validation(), async (req, res) => {
+    try {
+        const updated = await Users.update(req.params.id, req.body);
+        if(updated) {
+            const updatedPost = await Users.getById(req.params.id);
+            res.status(200).json(updatedPost);
+        } else {
+            res.status(404).json({ errorMessage: "The user with the specified ID does not exist." });
         }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Error updating user' });
     }
 });
-function isUpperCase(){
+
+function Validation(){
     return function(req, res, next){
-        if(req.body.name[0] !== req.body.name[0].toUpperCase()){
-            res.status(400).json({ errorMessage: 'The first letter of the name must be capitalized '});
+        if(!req.body.name){
+            res.status(400).json({ errorMessage: 'Please provide a name for the user'});
         } else {
+            req.body.name = req.body.name.toUpperCase();
             next();
         }
     };
