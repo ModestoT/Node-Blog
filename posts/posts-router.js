@@ -30,19 +30,19 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', userId(), async (req, res) => {
-    try {
-        const newPost = { ...req.body, user_id: req.headers.userid};
-        const post = await Posts.insert(newPost);
+   if(!req.body.text){
+       res.status(400).json({ errorMessage: 'Please provide text for the post' });
+   } else {
+        try {
+            const newPost = { ...req.body, user_id: req.headers.userid};
+            const post = await Posts.insert(newPost);
 
-        if(post){
             res.status(201).json(post);
-        } else {
-            res.status(404).json({ error: 'that userId does not exist'});
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: "There was an error while saving the post to the database" });
         }
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: "There was an error while saving the post to the database" });
-    }
+   }
 });
 
 router.delete('/:id', async (req, res) => {
@@ -57,6 +57,26 @@ router.delete('/:id', async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: "The post could not be removed" });
+    }
+});
+
+router.put('/:id', async (req, res) => {
+
+    if(!req.body.text){
+        res.status(400).json({ errorMessage: "Please provide new text for the post." })
+    } else {
+        try {
+            const updated = await Posts.update(req.params.id, req.body);
+            if(updated) {
+                const updatedPost = await Posts.getById(req.params.id);
+                res.status(200).json(updatedPost);
+            } else {
+                res.status(404).json({ errorMessage: "The post with the specified ID does not exist." });
+            }
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: 'Error updating post' });
+        }
     }
 });
 
